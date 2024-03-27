@@ -3,10 +3,10 @@
 #include "serial.h"
 
 int main() {
-    // Set pin 8 (PB0) as output
+    // Set pin 8 (PB0) as output for LED
     DDRB |= (1 << DDB0);
 
-    // Set pin 9 (PB1) as input
+    // Set pin 9 (PB1) as input for button
     DDRB &= ~(1 << DDB1);
     PORTB |= (1 << PORTB1); // Enable pull-up resistor
 
