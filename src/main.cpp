@@ -9,11 +9,12 @@
 #define BUTTON_PIN PB1
 
 int main() {
-    DDRB |= (1 << LED_PIN);        // Set LED pin as output
-    DDRB &= ~(1 << BUTTON_PIN);    // Set button pin as input
-    PORTB |= (1 << BUTTON_PIN);    // Enable pull-up resistor on button pin 
+    // Set pin 8 (PB0) as output
+    DDRB |= (1 << DDB0);
 
-    uart_init();                   // Initialize UART
+    // Set pin 9 (PB1) as input
+    DDRB &= ~(1 << DDB1);
+    PORTB |= (1 << PORTB1); // Enable pull-up resistor
 
     while (1) {
         // Read button state
