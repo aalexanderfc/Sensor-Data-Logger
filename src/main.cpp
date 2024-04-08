@@ -41,9 +41,9 @@ int main() {
         uart_rec_str(received_str, sizeof(received_str));
         
         // Parse the received string for LED power command
-        if (strncmp(received_str, "ledpower", 8) == 0) {
+        if (strncmp(received_str, "ledpower ", 9) == 0) { // Added space after "ledpower"
             // Extract the power value from the string
-            int power = atoi(received_str + 8);
+            int power = atoi(received_str + 9); // Skip "ledpower " instead of "ledpower"
 
             // Print the received command and parsed power value
             uart_putstr("Received command: ");
