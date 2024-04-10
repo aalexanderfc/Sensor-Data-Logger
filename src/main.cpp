@@ -1,77 +1,70 @@
 #include <avr/io.h>
 #include <util/delay.h>
-#include <stdio.h> // Include for sscanf
-#include <stdlib.h> // Include for atoi function
-#include <string.h> // Include for string manipulation functions
+#include <stdio.h> 
+#include <stdlib.h> 
+#include <string.h> 
 #include "serial.h"
 
-#define LED_PIN PB0
 #define BUTTON_PIN PB1
+#define LED_PIN PB0
 
 int main() {
-    // Set pin 8 (PB0) as output
+    // Set pin 8 (PB0) as output (LED pin)
     DDRB |= (1 << DDB0);
 
-    // Set pin 9 (PB1) as input
+    // Set pin 9 (PB1) as input(button pin)
     DDRB &= ~(1 << DDB1);
     PORTB |= (1 << PORTB1); // Enable pull-up resistor
+
+    // Initialize UART
+    uart_init();
+
+    // Send a test message over UART
+    uart_putstr("UART test message\n");
+
+    char command[64];
 
     while (1) {
         // Read button state
         uint8_t buttonState = (PINB & (1 << BUTTON_PIN));
 
         // If button is pressed (logic LOW)
-        if (!(buttonState)) {
+        if (!buttonState) {
             // Toggle LED
             PORTB ^= (1 << LED_PIN);
-            
-            // Print LED status to UART
-            if (PORTB & (1 << LED_PIN)) {
-                uart_putstr("LED turned on.\n");
-            } else {
-                uart_putstr("LED turned off.\n");
-            }
-            
-            // Delay for debounce
-            _delay_ms(200);
+            uart_putstr("Button pressed, toggling LED.\n");
         }
 
-        // Read a string from UART until '\n'
-        char received_str[64];
-        uart_rec_str(received_str, sizeof(received_str));
-        
-        // Parse the received string for LED power command
-        if (strncmp(received_str, "ledpower ", 9) == 0) { // Added space after "ledpower"
-            // Extract the power value from the string
-            int power = atoi(received_str + 9); // Skip "ledpower " instead of "ledpower"
-
-            // Print the received command and parsed power value
+        // Check if there's a command available over UART
+        if (uart_available()) {
+            uart_rec_str(command, sizeof(command));
             uart_putstr("Received command: ");
-            uart_putstr(received_str);
-            uart_putstr("Parsed power value: ");
-            uart_putchar(power + '0');
+            uart_putstr(command);
             uart_putstr("\n");
-
-            // Check the range of power value
-            if (power >= 0 && power <= 255) {
-                // Control LED brightness based on power value
-                if (power > 127) {
+                       // Check if the command is "ledpower"
+            if (strncmp(command, "ledpower ", 9) == 0) {
+                // Parse the power level from the command
+                int power = -1;
+                sscanf(command + 9, "%d", &power);
+                // Check if the power level is within the valid range
+                if (power < 0 || power > 255) {
+                    uart_putstr("Invalid power level. It should be between 0 and 255.\n");
+                    continue;
+                }
+                char powerStr[4]; // Buffer to hold the power value as a string
+                itoa(power, powerStr, 10); // Convert the power value to a string
+                uart_putstr("Power level: ");
+                uart_putstr(powerStr); // Print the power value
+                uart_putstr("\n");
+                
+                // Set the LED power
+                bool ledOn = power > 127;
+                if (ledOn) {
                     PORTB |= (1 << LED_PIN); // Turn on LED
                 } else {
                     PORTB &= ~(1 << LED_PIN); // Turn off LED
                 }
-                
-                // Print the power value to UART
-                char power_str[16];
-                snprintf(power_str, sizeof(power_str), "LED power set to %d.\n", power);
-                uart_putstr(power_str);
-            } else {
-                uart_putstr("Invalid LED power value. Please enter a value between 0 and 255.\n");
+                        }
+                    }
+                }
             }
-        } else {
-            uart_putstr("Invalid command. Please enter 'ledpower <value>'.\n");
-        }
-    }
-
-    return 0;
-}
