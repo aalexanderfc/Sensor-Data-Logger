@@ -72,9 +72,6 @@ For detailed code, please refer to the specific `.ino` file in the repository.
 - The amount of data that can be logged is limited by the memory of the microcontroller.
 - Custom modifications might be required for different types of sensors.
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
 
 ## Author
 
